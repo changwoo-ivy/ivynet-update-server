@@ -15,6 +15,7 @@ class IUS_Launcher {
     public function activation() {
         $this->init_roles_capabilities();
         $this->init_rewrites();
+        $this->init_taxonomies();
         flush_rewrite_rules();
     }
 
@@ -27,6 +28,9 @@ class IUS_Launcher {
     private function init_roles_capabilities() {
         ius_init_roles_caps_project();
         ius_init_roles_caps_release();
+    }
+
+    private function init_taxonomies() {
         ius_init_taxonomy_project_status();
     }
 
