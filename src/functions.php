@@ -53,6 +53,18 @@ function from_assoc( &$assoc, $key, $default = '' ) {
 }
 
 
+function &from_assoc_ref( &$assoc, $key, $default = '' ) {
+    $val = $default;
+    if ( is_array( $assoc ) && isset( $assoc[ $key ] ) ) {
+        $val = &$assoc[ $key ];
+    } elseif ( is_object( $assoc ) && isset( $assoc->{$key} ) ) {
+        $val = &$assoc->{$key};
+    }
+
+    return $val;
+}
+
+
 function from_get( $key, $default = '' ) {
     return from_assoc( $_GET, $key, $default );
 }
@@ -65,4 +77,22 @@ function from_post( $key, $default = '' ) {
 
 function from_request( $key, $default = '' ) {
     return from_assoc( $_REQUEST, $key, $default );
+}
+
+
+function check_update( &$request ) {
+    $plugins = &from_assoc_ref( $request, 'plugins' );
+    $output  = array(
+        'response'     => array(),
+        'translations' => array(),
+        'no_update'    => array(),
+    );
+
+    if ( $plugins ) {
+        // get update catalog
+        // compare server's latest, and plugins data.
+        // fill no_update and response
+    }
+
+    return $output;
 }
