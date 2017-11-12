@@ -53,6 +53,11 @@ function ius_deinit_roles_caps_project() {
 
 
 function ius_add_meta_boxes_project() {
+    /**
+     * meta keys:
+     * ius_plugin_main
+     * ius_latest_version
+     */
     add_meta_box( 'project-status', __( 'Project Status', 'ius' ), 'ius_output_meta_box_project_status', NULL, 'side', 'default' );
 }
 
@@ -81,7 +86,7 @@ function ius_save_post_ius_project( $post_id, $post, $updated ) {
         return;
     }
 
-    $project_status = from_request( 'project-status' );
+    $project_status = ius_from_request( 'project-status' );
     if ( $project_status ) {
         $terms = wp_get_post_terms( $post_id, 'project-status' );
         if ( count( $terms ) == 1 ) {

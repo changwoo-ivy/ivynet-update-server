@@ -57,5 +57,8 @@ function ius_add_meta_boxes_release() {
 }
 
 function ius_output_meta_box_release_properties( $post ) {
-
+    /**
+     * meta keys:
+     * ius_release_version: the file's version
+     */
 }
