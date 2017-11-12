@@ -3,8 +3,8 @@
  * Plugin Name: Ivynet Update Server
  * Description: Keep projects plugins updated!
  * Version:     0.0.0
- * Author:      Changwoo Nam
- * Author URI:  https://blog.changwoo.pe.kr/
+ * Author:      Ivynet
+ * Author URI:  https://ivynet.kr
  * License:     GPLv2+
  */
 
