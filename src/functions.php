@@ -42,7 +42,7 @@ function ius_render_template( $template_name, $contexts = array(), $echo = TRUE 
  *
  * @return mixed
  */
-function from_assoc( &$assoc, $key, $default = '' ) {
+function ius_from_assoc( &$assoc, $key, $default = '' ) {
     if ( is_array( $assoc ) ) {
         return isset( $assoc[ $key ] ) ? $assoc[ $key ] : $default;
     } elseif ( is_object( $assoc ) ) {
@@ -53,7 +53,7 @@ function from_assoc( &$assoc, $key, $default = '' ) {
 }
 
 
-function &from_assoc_ref( &$assoc, $key, $default = '' ) {
+function &ius_from_assoc_ref( &$assoc, $key, $default = '' ) {
     $val = $default;
     if ( is_array( $assoc ) && isset( $assoc[ $key ] ) ) {
         $val = &$assoc[ $key ];
@@ -65,33 +65,156 @@ function &from_assoc_ref( &$assoc, $key, $default = '' ) {
 }
 
 
-function from_get( $key, $default = '' ) {
-    return from_assoc( $_GET, $key, $default );
+function ius_from_get( $key, $default = '' ) {
+    return ius_from_assoc( $_GET, $key, $default );
 }
 
 
-function from_post( $key, $default = '' ) {
-    return from_assoc( $_POST, $key, $default );
+function ius_from_post( $key, $default = '' ) {
+    return ius_from_assoc( $_POST, $key, $default );
 }
 
 
-function from_request( $key, $default = '' ) {
-    return from_assoc( $_REQUEST, $key, $default );
+function ius_from_request( $key, $default = '' ) {
+    return ius_from_assoc( $_REQUEST, $key, $default );
 }
 
 
-function check_update( &$request ) {
-    $plugins = &from_assoc_ref( $request, 'plugins' );
-    $output  = array(
+/**
+ * 업데이트 체크 요청 함수
+ *
+ * @see   ius_check_update_10()
+ *
+ * @param array  $request $_POST, $_REQUEST 같은 배열.
+ * @param string $version 버전. 기본 1.0
+ *
+ * @return array
+ */
+function ius_check_update( &$request, $version ) {
+    switch ( $version ) {
+        case '1.0':
+        default:
+            return ius_check_update_10( $request );
+    }
+}
+
+
+/**
+ * @param array  $request     get, request
+ * @param string $name        가져올 키 이름
+ * @param bool   $assoc_array true 면 associative array 형태로 리턴.
+ *
+ * @return array|mixed|object
+ */
+function ius_get_request_param( &$request, $name, $assoc_array = FALSE ) {
+    return json_decode( stripslashes( ius_from_assoc( $request, $name ) ), $assoc_array );
+}
+
+
+/**
+ * @param $request
+ *
+ * @return array (
+ *           array $response 업데이트 가능한 목록 (
+ *             string $id           플러그인 아이디. 임의로 ivynet.co.kr/plugins/{slug} 로 결정
+ *             string $slug         플러그인 슬러그. 주로 디렉토리 부분.
+ *             string $plugin       메인 파일
+ *             string $new_version  새 버전
+ *             string $url          플러그인의 소개 페이지
+ *             string $package      새 파일
+ *             array  $icons        사용하지 않음. 빈 배열.
+ *             array  $banners      사용하지 않음. 빈 배열.
+ *             array  $banners_rtl  사용하지 않음. 빈 배열.
+ *           )
+ *           array $no_update    업데이트 하지 않는 플러그인의 페인 파일 목록. 원래의 워드프레스 업데이트 체크 요청과 다름에 유의.
+ *           array $translations 사용하지 않음. 빈 배열.
+ *         )
+ */
+function ius_check_update_10( &$request ) {
+
+    $output = array(
         'response'     => array(),
         'translations' => array(),
         'no_update'    => array(),
     );
 
+    $request_plugins = ius_get_request_param( $request, 'plugins', TRUE );
+    if ( ! isset( $request_plugins['plugins'] ) ) {
+        return $output;
+    }
+
+    $plugins = &$request_plugins['plugins'];
+
     if ( $plugins ) {
-        // get update catalog
+        $project_query = new WP_Query( array(
+            'post_type'   => 'ius_project',
+            'post_status' => 'publish',
+            'nopaging'    => TRUE,
+            'tax_query'   => array(
+                array(
+                    'taxonomy' => 'project-status',
+                    'field'    => 'slug',
+                    'terms'    => 'active',
+                ),
+            ),
+            'meta_key'    => 'ius_plugin_main',
+            'orderby'     => 'meta_value',
+            'order'       => 'ASC',
+            'fields'      => 'ids',
+        ) );
+
+        $avail_projects = array();
+
+        foreach ( $project_query->posts as $project_id ) {
+            $plugin_main    = get_post_meta( $project_id, 'ius_plugin_main', TRUE );
+            $latest_version = get_post_meta( $project_id, 'ius_latest_version', TRUE );
+            if ( $plugin_main && $latest_version ) {
+                $avail_projects[ $plugin_main ] = array(
+                    'version'    => $latest_version,
+                    'project_id' => $project_id,
+                );
+            }
+        }
+
+        $targeted = array_flip( array_intersect( array_keys( $plugins ), array_keys( $avail_projects ) ) );
+
         // compare server's latest, and plugins data.
-        // fill no_update and response
+        foreach ( $plugins as $main_file => $plugin ) {
+
+            if ( ! isset( $targeted[ $main_file ] ) ) {
+                $output['no_update'][] = $main_file;
+                continue;
+            }
+
+            $latest_version = $avail_projects[ $main_file ]['version'];
+            $plugin_version = $plugins[ $main_file ]['Version'];
+            $main_exploded  = explode( '/', $main_file );
+
+            if ( count( $main_exploded ) > 1 ) {
+                $slug = sanitize_key( $main_exploded[0] );
+            } else {
+                $slug = sanitize_key( substr( $main_exploded[0], 0, strrpos( $main_exploded[0], '.' ) ) );
+            }
+
+            // TODO: grab attached file.
+            $package = '';
+
+            if ( version_compare( $latest_version, $plugin_version, '>' ) ) {
+                $output['response'][ $main_file ] = (object) array(
+                    'id'          => "ivynet.co.kr/plugins/{$slug}",
+                    'slug'        => $slug,
+                    'plugin'      => $main_file,
+                    'new_version' => $latest_version,
+                    'url'         => get_permalink( $avail_projects[ $main_file ]['project_id'] ),
+                    'package'     => $package,
+                    'icons'       => array(),
+                    'banners'     => array(),
+                    'banners_rtl' => array(),
+                );
+            } else {
+                $output['no_update'][] = $main_file;
+            }
+        }
     }
 
     return $output;
