@@ -8,22 +8,23 @@
 add_action( 'init', 'ius_register_project' );
 
 function ius_register_project() {
-    register_post_type( 'ius_project', array(
-        'label'                => _x( 'Projects', 'Custom post label', 'ius' ),
-        'labels'               => array(),
-        'description'          => 'Custom post for keeping projects',
-        'public'               => TRUE,
-        'menu_icon'            => 'dashicons-feedback',
-        'capability_type'      => array( 'project', 'projects' ),
-        'map_meta_cap'         => TRUE,
-        'hierarchical'         => TRUE,
-        'supports'             => array( 'title', 'editor', 'excerpt', 'thumbnail' ),
-        'register_meta_box_cb' => 'ius_add_meta_boxes_project',
-        'taxonomies'           => array( 'project-status' ),
-        'has_archive'          => TRUE,
-        'can_export'           => TRUE,
-        'show_in_rest'         => TRUE,
-    ) );
+    register_post_type( 'ius_project',
+        array(
+            'label'                => _x( 'Projects', 'Custom post label', 'ius' ),
+            'labels'               => array(),
+            'description'          => 'Custom post for keeping projects',
+            'public'               => TRUE,
+            'menu_icon'            => 'dashicons-feedback',
+            'capability_type'      => array( 'project', 'projects' ),
+            'map_meta_cap'         => TRUE,
+            'hierarchical'         => TRUE,
+            'supports'             => array( 'title', 'editor', 'excerpt', 'thumbnail' ),
+            'register_meta_box_cb' => 'ius_add_meta_boxes_project',
+            'taxonomies'           => array( 'project-status' ),
+            'has_archive'          => TRUE,
+            'can_export'           => TRUE,
+            'show_in_rest'         => TRUE,
+        ) );
 }
 
 function ius_init_roles_caps_project() {
@@ -58,16 +59,37 @@ function ius_add_meta_boxes_project() {
      * ius_plugin_main
      * ius_latest_version
      */
-    add_meta_box( 'project-status', __( 'Project Status', 'ius' ), 'ius_output_meta_box_project_status', NULL, 'side', 'default' );
+
+    add_meta_box( 'project-status',
+        __( 'Project Status', 'ius' ),
+        'ius_output_meta_box_project_status',
+        NULL,
+        'side',
+        'default' );
+
+    add_meta_box( 'project-properties', __( 'Project Properties', 'ius' ), 'ius_output_meta_box_project_properties' );
+
+    add_meta_box( 'project-releases', __( 'Project Releases', 'ius' ), 'ius_output_meta_box_project_releases' );
 }
 
 
 function ius_output_meta_box_project_status( $post ) {
     $selected = wp_get_post_terms( $post->ID, 'project-status', array( 'number' => 1 ) );
-    ius_render_template( 'meta-boxes/project-status.php', array(
-        'options'  => get_terms( array( 'taxonomy' => 'project-status', 'hide_empty' => FALSE ) ),
-        'selected' => $selected ? $selected[0]->slug : FALSE,
-    ) );
+    ius_render_template( 'meta-boxes/project-status.php',
+        array(
+            'options'  => get_terms( array( 'taxonomy' => 'project-status', 'hide_empty' => FALSE ) ),
+            'selected' => $selected ? $selected[0]->slug : FALSE,
+        ) );
+}
+
+
+function ius_output_meta_box_project_properties() {
+    ius_render_template( 'meta-boxes/project-properties.php' );
+}
+
+
+function ius_output_meta_box_project_releases() {
+    ius_render_template( 'meta-boxes/project-releases.php' );
 }
 
 
@@ -82,21 +104,24 @@ function ius_save_post_ius_project( $post_id, $post, $updated ) {
         return;
     }
 
-    if ( ! wp_verify_nonce( $_POST['project-status-nonce'], 'nonce-project-status-1876' ) ) {
-        return;
+    if ( wp_verify_nonce( $_POST['project-status-nonce'], 'nonce-project-status-1876' ) ) {
+        $project_status = ius_from_request( 'project-status' );
+        if ( $project_status ) {
+            $terms = wp_get_post_terms( $post_id, 'project-status' );
+            if ( count( $terms ) != 1 || $terms[0]->slug != $project_status ) {
+                wp_delete_object_term_relationships( $post_id, 'project-status' );
+                wp_add_object_terms( $post_id, $project_status, 'project-status' );
+            }
+        } else {
+            wp_delete_object_term_relationships( $post_id, 'project-status' );
+        }
     }
 
-    $project_status = ius_from_request( 'project-status' );
-    if ( $project_status ) {
-        $terms = wp_get_post_terms( $post_id, 'project-status' );
-        if ( count( $terms ) == 1 ) {
-            if ( $terms[0]->slug == $project_status ) {
-                return;
-            }
-        }
-        wp_delete_object_term_relationships( $post_id, 'project-status' );
-        wp_add_object_terms( $post_id, $project_status, 'project-status' );
-    } else {
-        wp_delete_object_term_relationships( $post_id, 'project-status' );
+    if ( wp_verify_nonce( $_POST['project-properties-nonce'], 'project-properties-nonce-9234' ) ) {
+        $plugin_main = sanitize_text_field( ius_from_post( 'ius_plugin_main', '' ) );
+        update_post_meta( $post_id, 'ius_plugin_main', $plugin_main );
+
+        $latest_version = sanitize_text_field( ius_from_post( 'ius_latest_version', '' ) );
+        update_post_meta( $post_id, 'ius_latest_version', $latest_version );
     }
 }
