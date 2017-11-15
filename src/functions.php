@@ -196,10 +196,16 @@ function ius_check_update_10( &$request ) {
                 $slug = sanitize_key( substr( $main_exploded[0], 0, strrpos( $main_exploded[0], '.' ) ) );
             }
 
-            // TODO: grab attached file.
-            $package = '';
-
             if ( version_compare( $latest_version, $plugin_version, '>' ) ) {
+
+                $attachments = get_attached_media( 'application/zip', $avail_projects[ $main_file ]['project_id'] );
+
+                if ( ! $attachments ) {
+                    continue;
+                }
+
+                $package = wp_get_attachment_url( $attachments[0]->ID );
+
                 $output['response'][ $main_file ] = (object) array(
                     'id'          => "ivynet.co.kr/plugins/{$slug}",
                     'slug'        => $slug,
@@ -214,6 +220,46 @@ function ius_check_update_10( &$request ) {
             } else {
                 $output['no_update'][] = $main_file;
             }
+        }
+    }
+
+    return $output;
+}
+
+
+function ius_version_cmp_desc( $l, $r ) {
+    return version_compare( $r, $l );
+}
+
+function ius_get_project_releases( $project_id ) {
+
+    $output = array();
+
+    $query = new WP_Query( array(
+        'post_type'   => 'ius_release',
+        'post_status' => 'publish',
+        'post_parent' => $project_id,
+        'orderby'     => 'date',
+        'order'       => 'DESC',
+        'nopaging'    => TRUE,
+        'fields'      => 'ids',
+    ) );
+
+    if ( $query->have_posts() ) {
+
+        $versions = array();
+
+        foreach ( $query->posts as $post_id ) {
+            $versions[] = get_post_meta( $post_id, 'ius_release_version', TRUE );
+        }
+
+        uasort( $versions, 'ius_version_cmp_desc' );
+
+        foreach ( $versions as $idx => $version ) {
+            $output[] = array(
+                'version' => $version,
+                'post_id' => $query->posts[ $idx ],
+            );
         }
     }
 
