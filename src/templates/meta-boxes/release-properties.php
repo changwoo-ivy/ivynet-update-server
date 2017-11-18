@@ -48,6 +48,23 @@ global $post;
       </label>
     </th>
     <td>
+        <?php
+        $attachments = get_attached_media( 'application/zip', $post->ID );
+        if ( $attachments ) {
+            $ids = array_keys( $attachments );
+            $url = wp_get_attachment_url( $ids[0] );
+        } else {
+            $url = FALSE;
+        }
+        ?>
+        <?php if ( $url ) : ?>
+          <p>
+              <?php esc_html_e( 'Attached file:', 'ius' ); ?>
+            <a href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'Download', 'ius' ); ?></a>
+          </p>
+        <?php else: ?>
+          <p><?php esc_html_e( 'File not attached yet.', 'ius' ); ?></p>
+        <?php endif; ?>
       <input type="file" name="ius_file"/>
       <br/>
       <span class="description">
