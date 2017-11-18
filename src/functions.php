@@ -168,10 +168,22 @@ function ius_check_update_10( &$request ) {
         foreach ( $project_query->posts as $project_id ) {
             $plugin_main    = get_post_meta( $project_id, 'ius_plugin_main', TRUE );
             $latest_version = get_post_meta( $project_id, 'ius_latest_version', TRUE );
+
             if ( $plugin_main && $latest_version ) {
+                $release                        = get_posts(
+                    array(
+                        'post_type'   => 'ius_release',
+                        'post_status' => 'publish',
+                        'post_parent' => $project_id,
+                        'meta_key'    => 'ius_release_version',
+                        'meta_value'  => $latest_version,
+                        'fields'      => 'ids',
+                    )
+                );
                 $avail_projects[ $plugin_main ] = array(
                     'version'    => $latest_version,
                     'project_id' => $project_id,
+                    'release_id' => count( $release ) ? $release[0] : 0,
                 );
             }
         }
@@ -188,23 +200,18 @@ function ius_check_update_10( &$request ) {
 
             $latest_version = $avail_projects[ $main_file ]['version'];
             $plugin_version = $plugins[ $main_file ]['Version'];
-            $main_exploded  = explode( '/', $main_file );
-
-            if ( count( $main_exploded ) > 1 ) {
-                $slug = sanitize_key( $main_exploded[0] );
-            } else {
-                $slug = sanitize_key( substr( $main_exploded[0], 0, strrpos( $main_exploded[0], '.' ) ) );
-            }
+            $slug           = ius_get_plugin_identifier( $main_file );
 
             if ( version_compare( $latest_version, $plugin_version, '>' ) ) {
 
-                $attachments = get_attached_media( 'application/zip', $avail_projects[ $main_file ]['project_id'] );
+                $attachments = get_attached_media( 'application/zip', $avail_projects[ $main_file ]['release_id'] );
 
                 if ( ! $attachments ) {
                     continue;
                 }
 
-                $package = wp_get_attachment_url( $attachments[0]->ID );
+                $attach_ids = array_keys( $attachments );
+                $package    = wp_get_attachment_url( $attach_ids[0] );
 
                 $output['response'][ $main_file ] = (object) array(
                     'id'          => "ivynet.co.kr/plugins/{$slug}",
@@ -264,4 +271,22 @@ function ius_get_project_releases( $project_id ) {
     }
 
     return $output;
+}
+
+function ius_get_plugin_identifier( $plugin_main ) {
+
+    if ( ! $plugin_main ) {
+        return NULL;
+    }
+
+    $exploded = explode( '/', $plugin_main );
+    if ( count( $exploded ) == 0 ) {
+        return NULL;
+    } elseif ( count( $exploded ) == 1 ) {
+        $dot_pos   = strrpos( $exploded[0], '.' );
+        $file_name = substr( $exploded[0], 0, $dot_pos === FALSE ? NULL : $dot_pos );
+        return sanitize_key( $file_name );
+    }
+
+    return sanitize_key( $exploded[0] );
 }
