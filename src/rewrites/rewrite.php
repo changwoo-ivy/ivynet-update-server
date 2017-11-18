@@ -31,7 +31,8 @@ function ius_template_redirect() {
     switch ( ius_from_assoc( $wp->query_vars, 'ius-action', '' ) ) {
         case 'check-update':
             $version = ius_from_assoc( $wp->query_vars, 'ius-version', '1.0' );
-            ius_check_update( $_POST, $version );
+            $result  = ius_check_update( $_POST, $version );
+            echo wp_json_encode( $result );
             exit;
     }
 }
