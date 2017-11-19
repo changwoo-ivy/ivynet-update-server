@@ -234,10 +234,31 @@ function ius_check_update_10( &$request ) {
 }
 
 
+/**
+ * Version compare function
+ *
+ * @used-by ius_get_project_releases()
+ *
+ * @param string $l
+ * @param string $r
+ *
+ * @return int
+ */
 function ius_version_cmp_desc( $l, $r ) {
     return version_compare( $r, $l );
 }
 
+
+/**
+ * Retrieve releases from a project
+ *
+ * @param int $project_id
+ *
+ * @return array (
+ *               * string $version
+ *               * int    $post_id
+ *               )
+ */
 function ius_get_project_releases( $project_id ) {
 
     $output = array();
@@ -273,6 +294,14 @@ function ius_get_project_releases( $project_id ) {
     return $output;
 }
 
+
+/**
+ * Get slug of the plugin
+ *
+ * @param $plugin_main
+ *
+ * @return null|string
+ */
 function ius_get_plugin_identifier( $plugin_main ) {
 
     if ( ! $plugin_main ) {
@@ -289,4 +318,120 @@ function ius_get_plugin_identifier( $plugin_main ) {
     }
 
     return sanitize_key( $exploded[0] );
+}
+
+
+/**
+ * @param $hook_identifier
+ *
+ * @return void
+ */
+function ius_handle_webhook( $hook_identifier ) {
+    switch ( $hook_identifier ) {
+        case 'github':
+            header( 'Content-Type: application/json' );
+            wp_send_json_success( ius_handle_webhook_github() );
+            break;
+
+        case 'default':
+            die( 0 );
+
+    }
+}
+
+
+/**
+ * @return array
+ *
+ * @see https://developer.github.com/webhooks/
+ * @see https://developer.github.com/v3/repos/hooks/
+ * @see https://developer.github.com/v3/activity/events/types/#releaseevent
+ */
+function ius_handle_webhook_github() {
+
+    error_log( 'webhook request from github received!' );
+
+    $action = ius_from_post( 'action' );
+
+    if ( $action == 'published' ) {
+
+        $release    = &ius_from_assoc_ref( $_POST, 'release', array() );
+        $repository = &ius_from_assoc_ref( $_POST, 'repository', array() );
+
+        $release_zip    = ius_from_assoc( $release, 'zipball_url' );
+        $version        = ius_from_assoc( $release, 'tag_name' );
+        $repo_full_name = ius_from_assoc( $repository, 'full_name' );
+
+        if ( ! $release_zip || ! $repo_full_name ) {
+            error_log( 'Invalid parameter in the request' );
+            exit;
+        }
+
+        error_log( 'handle \'release\' webhook started.' );
+
+        $posts = get_posts(
+            array(
+                'post_type'   => 'ius_release',
+                'post_status' => 'publish',
+                'meta_key'    => 'ius_github_repository',
+                'meta_value'  => $repo_full_name,
+            )
+        );
+
+        if ( ! $posts ) {
+            error_log( 'Error, release with repository ' . $repo_full_name . ' does not exist!' );
+            exit;
+        }
+
+        /** @var WP_Post $project */
+        $project = &$posts[0];
+
+        /** @var string|WP_Error $temp_file */
+        $temp_file = download_url( $release_zip );
+
+
+        if ( is_wp_error( $temp_file ) ) {
+            error_log( 'Failed to download .zip file: ' . $temp_file->get_error_message() );
+            exit;
+        }
+
+        $slug        = ius_get_plugin_identifier( get_post_meta( $project->ID, 'ius_plugin_main', TRUE ) );
+        $upload_dir  = wp_upload_dir();
+        $release_dir = $upload_dir['basedir'] . '/ius/' . $slug;
+        $file_name   = "{$release_dir}/{$slug}-{$version}.zip";
+
+        if ( ! file_exists( $release_dir ) ) {
+            mkdir( $release_dir, 0777, TRUE );
+        }
+
+        $attach_id = wp_insert_attachment(
+            array(
+                'guid'           => "{$upload_dir['baseurl']}/ius/{$slug}/" . basename( $file_name ),
+                'post_mime_type' => 'application/zip',
+                'post_title'     => basename( $file_name ),
+                'post_status'    => 'inherit',
+            ),
+            $file_name,
+            $project->ID
+        );
+
+        if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+            /** @noinspection PhpIncludeInspection */
+            require_once( get_home_path() . '/wp-admin/includes/image.php' );
+        }
+
+        wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $file_name ) );
+
+        wp_insert_post(
+            array(
+                'post_title'  => sprintf( __( '%s version %s', 'ius' ), $project->post_title, $version ),
+                'post_type'   => 'ius_release',
+                'post_status' => 'publish',
+                'post_parent' => $project->ID,
+                'meta_input'  => array( 'ius_release_version' => $version ),
+            )
+        );
+
+        return array();
+    }
 }
