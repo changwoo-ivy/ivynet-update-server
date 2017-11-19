@@ -11,7 +11,11 @@ function ius_register_project() {
     register_post_type( 'ius_project',
         array(
             'label'                => _x( 'Projects', 'Custom post label', 'ius' ),
-            'labels'               => array(),
+            'labels'               => array(
+                'add_new'      => _x( 'Add New Project', 'Custom post label', 'ius' ),
+                'add_new_item' => _x( 'Add New Project', 'Custom post label', 'ius' ),
+                'edit_item'    => _x( 'Edit Project', 'Custom post label', 'ius' ),
+            ),
             'description'          => 'Custom post for keeping projects',
             'public'               => TRUE,
             'menu_icon'            => 'dashicons-feedback',

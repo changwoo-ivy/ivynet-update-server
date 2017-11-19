@@ -8,8 +8,15 @@ class IUS_Launcher {
         require_once IUS_DIR . '/src/rewrites/rewrite.php';
         require_once IUS_DIR . '/src/functions.php';
 
+        if ( is_admin() ) {
+            require_once IUS_DIR . '/src/admin/projects.php';
+            require_once IUS_DIR . '/src/admin/release.php';
+        }
+
         register_activation_hook( IUS_MAIN, array( $this, 'activation' ) );
         register_deactivation_hook( IUS_MAIN, array( $this, 'deactivation' ) );
+
+        add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
     }
 
     public function activation() {
@@ -23,6 +30,10 @@ class IUS_Launcher {
         $this->deinit_roles_capabilities();
         $this->deinit_rewrites();
         flush_rewrite_rules();
+    }
+
+    public function load_textdomain() {
+        load_plugin_textdomain( 'ius', FALSE, basename( IUS_DIR ) . '/languages' );
     }
 
     private function init_roles_capabilities() {

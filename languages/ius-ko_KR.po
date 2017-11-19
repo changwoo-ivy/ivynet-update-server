@@ -1,0 +1,178 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ivynet Update Server\n"
+"POT-Creation-Date: 2017-11-19 21:30+0900\n"
+"PO-Revision-Date: 2017-11-19 21:30+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ko_KR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"X-Poedit-Basepath: ..\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_x:1,2c;esc_html_e;esc_html__;esc_html_x;_n;"
+"_nx:1,2,4c\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: src/admin/projects.php:24 src/admin/projects.php:32
+msgid "Plugin Main"
+msgstr "플러그인 메인"
+
+#: src/admin/projects.php:25 src/admin/projects.php:33
+#: src/admin/projects.php:34 src/templates/meta-boxes/project-properties.php:32
+msgid "Latest Version"
+msgstr "최신 버전"
+
+#: src/admin/projects.php:26
+msgid "Num. of Releases"
+msgstr "릴리즈 수"
+
+#: src/admin/projects.php:79
+msgid "All Statuses"
+msgstr "모든 상황"
+
+#: src/admin/release.php:24 src/admin/release.php:32
+#: src/templates/meta-boxes/release-properties.php:12
+msgid "Project"
+msgstr "프로젝트"
+
+#: src/admin/release.php:25 src/admin/release.php:33
+#: src/templates/meta-boxes/release-properties.php:27
+msgid "Version"
+msgstr "버전"
+
+#: src/admin/release.php:26 src/admin/release.php:34
+#: src/templates/meta-boxes/release-properties.php:47
+msgid "File"
+msgstr "파일"
+
+#: src/custom-posts/project.php:13
+msgctxt "Custom post label"
+msgid "Projects"
+msgstr "프로젝트들"
+
+#: src/custom-posts/project.php:15 src/custom-posts/project.php:16
+msgctxt "Custom post label"
+msgid "Add New Project"
+msgstr "새 프로젝트 추가"
+
+#: src/custom-posts/project.php:17
+msgctxt "Custom post label"
+msgid "Edit Project"
+msgstr "프로젝트 편집"
+
+#: src/custom-posts/project.php:68
+#: src/templates/meta-boxes/project-status.php:11
+msgid "Project Status"
+msgstr "프로젝트 상황"
+
+#: src/custom-posts/project.php:74
+msgid "Project Properties"
+msgstr "프로젝트 속성"
+
+#: src/custom-posts/project.php:76
+msgid "Project Releases"
+msgstr "프로젝트 릴리즈들"
+
+#: src/custom-posts/release.php:14
+msgctxt "Custom post label"
+msgid "Releases"
+msgstr "릴리즈들"
+
+#: src/custom-posts/release.php:16 src/custom-posts/release.php:17
+msgctxt "Custom post label"
+msgid "Add New Release"
+msgstr "새 릴리즈 추가"
+
+#: src/custom-posts/release.php:18
+msgctxt "Custom post label"
+msgid "Edit Release"
+msgstr "릴리즈 편집"
+
+#: src/custom-posts/release.php:68
+msgid "Release Properties"
+msgstr "릴리즈 속성"
+
+#: src/taxonomies/project-status.php:14
+msgctxt "taxonomy label"
+msgid "Project Statuses"
+msgstr "프로젝트 상황"
+
+#: src/templates/meta-boxes/project-properties.php:12
+msgid "Plugin Main File"
+msgstr "플러그인 메인 파일"
+
+#: src/templates/meta-boxes/project-properties.php:24
+msgid ""
+"Input the plugin's main file path. It is a relative path. For example, if "
+"your plugin's absolute path is '/home/some/path/public_html/wp-content/"
+"plugins/foo/bar.php', then please input 'foo/bar.php' here."
+msgstr ""
+"플러그인 메인 파일 경로를 입력하세요. 상대 경로입니다. 예를들어, 플러그인이 "
+"절대 경로 '/home/some/path/publc_html/wp-content/plugins/foo/bar.php'에 있다"
+"면 'foo/bar.php'를 여기에 입력하시면 됩니다."
+
+#: src/templates/meta-boxes/project-properties.php:41
+msgid "Choose a version"
+msgstr "버전 선택"
+
+#: src/templates/meta-boxes/project-properties.php:51
+#: src/templates/meta-boxes/project-releases.php:10
+msgid "No releases yet."
+msgstr "아직 릴리즈 없음."
+
+#: src/templates/meta-boxes/project-properties.php:55
+msgid "You can override the project latest version here."
+msgstr "여기서 최신 버전을 지정할 수 있습니다."
+
+#: src/templates/meta-boxes/release-properties.php:17
+msgid "Choose a project"
+msgstr "프로젝트 선택"
+
+#: src/templates/meta-boxes/release-properties.php:39
+msgid ""
+"Version number of this release. Must be valid for PHP version_compare() "
+"function!"
+msgstr ""
+"이 릴리즈의 버전 넘버. 반드시 PHP version_compare() 함수에 인식되어야 합니다!"
+
+#: src/templates/meta-boxes/release-properties.php:62
+msgid "Attached file:"
+msgstr "첨부 파일:"
+
+#: src/templates/meta-boxes/release-properties.php:63
+msgid "Download"
+msgstr "다운로드"
+
+#: src/templates/meta-boxes/release-properties.php:66
+msgid "File not attached yet."
+msgstr "파일이 아직 첨부되지 않음."
+
+#: src/templates/meta-boxes/release-properties.php:71
+msgid ""
+"Attach a plugin file. For WordPress core update, only .zip files are "
+"accepted."
+msgstr ""
+"플러그인 파일을 첨부하세요. 워드프레스 코어 업데이트를 위해 반드시 .zip 파일"
+"만 가능합니다."
+
+#: src/templates/quick-edit/project-status.php:5
+msgid "Proj. Stat."
+msgstr "프로젝트 상황"
+
+#~ msgctxt "ius"
+#~ msgid "Edit Project"
+#~ msgstr "프로젝트 편짖ㅂ"
+
+#~ msgid "Add New Project"
+#~ msgstr "새 프로젝트 추가"
+
+#~ msgctxt "ius"
+#~ msgid "Edit Release"
+#~ msgstr "릴리즈 편집"
+
+#~ msgid "Add New Release"
+#~ msgstr "새 릴리즈 추가"

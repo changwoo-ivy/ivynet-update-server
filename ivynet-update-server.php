@@ -2,10 +2,11 @@
 /**
  * Plugin Name: Ivynet Update Server
  * Description: Keep projects plugins updated!
- * Version:     1.0.0
+ * Version:     1.1.0-alpha.1
  * Author:      Ivynet
  * Author URI:  https://ivynet.kr
  * License:     GPLv2+
+ * Text Domain: ius
  */
 
 define( 'IUS_MAIN', __FILE__ );

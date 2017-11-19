@@ -12,9 +12,19 @@ function ius_register_release() {
     register_post_type( 'ius_release',
         array(
             'label'                => _x( 'Releases', 'Custom post label', 'ius' ),
-            'labels'               => array(),
+            'labels'               => array(
+                'add_new'      => _x( 'Add New Release', 'Custom post label', 'ius' ),
+                'add_new_item' => _x( 'Add New Release', 'Custom post label', 'ius' ),
+                'edit_item'    => _x( 'Edit Release', 'Custom post label', 'ius' ),
+            ),
             'description'          => 'Custom post for keeping release',
-            'public'               => TRUE,
+            'public'               => FALSE,
+            'exclude_from_search'  => FALSE,
+            'publicly_queryable'   => FALSE,
+            'show_ui'              => TRUE,
+            'show_in_nav_menus'    => FALSE,
+            'show_in_menu'         => TRUE,
+            'show_in_admin_bar'    => TRUE,
             'menu_icon'            => 'dashicons-archive',
             'capability_type'      => array( 'release', 'releases' ),
             'map_meta_cap'         => TRUE,
@@ -66,7 +76,6 @@ function ius_output_meta_box_release_properties() {
     /**
      * meta keys:
      * ius_release_version: the file's version
-     * ius_release_file:    the file's path
      */
     ius_render_template( 'meta-boxes/release-properties.php' );
 }

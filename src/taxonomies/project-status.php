@@ -8,12 +8,14 @@
 add_action( 'init', 'ius_register_taxonomy_project_status' );
 
 function ius_register_taxonomy_project_status() {
-    register_taxonomy( 'project-status', 'ius_project', array(
-        'label'             => _x( 'Project Statuses', 'taxonomy label', 'ius' ),
-        'public'            => FALSE,
-        'hierarchical'      => FALSE,
-        'show_admin_column' => TRUE,
-    ) );
+    register_taxonomy( 'project-status',
+        'ius_project',
+        array(
+            'label'             => _x( 'Project Statuses', 'taxonomy label', 'ius' ),
+            'public'            => FALSE,
+            'hierarchical'      => FALSE,
+            'show_admin_column' => TRUE,
+        ) );
 }
 
 function ius_init_taxonomy_project_status() {
