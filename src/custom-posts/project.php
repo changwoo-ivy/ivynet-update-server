@@ -62,6 +62,8 @@ function ius_add_meta_boxes_project() {
      * meta keys:
      * ius_plugin_main
      * ius_latest_version
+     * ius_github_repository
+     * ius_github_webhook_secret
      */
 
     add_meta_box( 'project-status',
@@ -74,6 +76,8 @@ function ius_add_meta_boxes_project() {
     add_meta_box( 'project-properties', __( 'Project Properties', 'ius' ), 'ius_output_meta_box_project_properties' );
 
     add_meta_box( 'project-releases', __( 'Project Releases', 'ius' ), 'ius_output_meta_box_project_releases' );
+
+    add_meta_box( 'project-webhook', __( 'Webhook', 'ius' ), 'ius_output_meta_box_project_webhook' );
 }
 
 
@@ -87,15 +91,34 @@ function ius_output_meta_box_project_status( $post ) {
 }
 
 
+/**
+ * meta box callback
+ *
+ * @used-by ius_add_meta_boxes_project()
+ */
 function ius_output_meta_box_project_properties() {
     ius_render_template( 'meta-boxes/project-properties.php' );
 }
 
 
+/**
+ * meta box callback
+ *
+ * @used-by ius_add_meta_boxes_project()
+ */
 function ius_output_meta_box_project_releases() {
     ius_render_template( 'meta-boxes/project-releases.php' );
 }
 
+
+/**
+ * meta box callback
+ *
+ * @used-by ius_add_meta_boxes_project()
+ */
+function ius_output_meta_box_project_webhook() {
+    ius_render_template( 'meta-boxes/project-webhook.php' );
+}
 
 add_action( 'save_post_ius_project', 'ius_save_post_ius_project', 10, 3 );
 
@@ -127,5 +150,28 @@ function ius_save_post_ius_project( $post_id, $post, $updated ) {
 
         $latest_version = sanitize_text_field( ius_from_post( 'ius_latest_version', '' ) );
         update_post_meta( $post_id, 'ius_latest_version', $latest_version );
+    }
+
+    if ( wp_verify_nonce( $_POST['project-webhook-nonce'], 'project-webhook-nonce-8723' ) ) {
+        $github_repository = trim( sanitize_text_field( ius_from_post( 'ius_github_repository' ) ) );
+
+        // do not allow duplicated repository.
+        if ( $github_repository ) {
+            $posts = get_posts(
+                array(
+                    'post_type'  => 'ius_release',
+                    'meta_key'   => 'ius_github_repository',
+                    'meta_value' => $github_repository,
+                )
+            );
+            if ( $posts ) {
+                wp_die( "Github repository '{$github_repository}' already registered." );
+            }
+        }
+
+        update_post_meta( $post_id, 'ius_github_repository', $github_repository );
+
+        $webhook_secret = trim( sanitize_text_field( ius_from_post( 'ius_github_webhook_secret' ) ) );
+        update_post_meta( $post_id, 'ius_github_webhook_secret', $webhook_secret );
     }
 }
