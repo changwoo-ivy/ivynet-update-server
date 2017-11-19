@@ -11,7 +11,7 @@
 
 define( 'IUS_MAIN', __FILE__ );
 define( 'IUS_DIR', __DIR__ );
-define( 'IUS_VERSION', '1.0.0' );
+define( 'IUS_VERSION', '1.1.0-alpha.1' );
 
 require_once __DIR__ . '/src/class-ius-launcher.php';
 
