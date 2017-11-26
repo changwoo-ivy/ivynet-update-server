@@ -167,11 +167,14 @@ class IUS_Github_Webhook {
         return $new_release_id;
     }
 
+    /**
+     * @return false|null|WP_Error|WP_Post
+     */
     private function handle_tag_delete() {
         error_log( 'handle_tag_delete() invoked' );
 
         $repo_full_name = $this->get_repo_full_name( $this->payload );
-        $tag            = $this->get_tag_name( $this->payload );
+        $tag            = ius_from_assoc( $this->payload, 'ref' );
         $ref_type       = ius_from_assoc( $this->payload, 'ref_type' );
 
         if ( $ref_type != 'tag' ) {
@@ -256,10 +259,67 @@ class IUS_Github_Webhook {
         $private = intval( ius_from_assoc( $repository, 'private' ) );
 
         if ( ! $private ) {
-            $release_id = ius_save_released( $project->ID, $tag, $zipall_url );
+            $file_name = ius_save_released( $project->ID, $tag, $zipall_url );
         } else {
             error_log( 'Downloading is skipped because the repository is private.' );
-            $release_id = NULL;
+            $file_name = '';
+        }
+
+        $release = get_posts(
+            array(
+                'post_type'   => 'ius_release',
+                'post_status' => array( 'publish', 'draft' ),
+                'post_parent' => $project->ID,
+                'meta_key'    => 'ius_release_version',
+                'meta_value'  => $tag,
+            )
+        );
+
+        if ( ! $release ) {
+            $release_id = wp_insert_post(
+                array(
+                    'post_title'  => sprintf( __( '%s v%s', 'ius' ), $project->post_title, $tag ),
+                    'post_type'   => 'ius_release',
+                    'post_status' => 'publish',
+                    'post_parent' => $project->ID,
+                    'meta_input'  => array( 'ius_release_version' => $tag ),
+                )
+            );
+        } else {
+            // reuse already released one.
+            $release_id = $release[0]->ID;
+
+            // but remove all attachments
+            $attachments = get_attached_media( 'application/zip', $release_id );
+            foreach ( $attachments as $attachment ) {
+                wp_delete_attachment( $attachment->ID );
+            }
+
+            wp_update_post(
+                array(
+                    'ID'          => $release_id,
+                    'post_status' => 'publish',
+                )
+            );
+        }
+
+        if ( $file_name ) {
+            $attach_id = wp_insert_attachment(
+                array(
+                    'post_mime_type' => 'application/zip',
+                    'post_title'     => basename( $file_name ),
+                    'post_status'    => 'inherit',
+                ),
+                $file_name,
+                $release_id
+            );
+
+            if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+                /** @noinspection PhpIncludeInspection */
+                require_once( get_home_path() . '/wp-admin/includes/image.php' );
+            }
+
+            wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $file_name ) );
         }
 
         error_log( 'handle_release() finished' );
@@ -274,7 +334,6 @@ class IUS_Github_Webhook {
     }
 
     private function get_tag_name( &$payload ) {
-
         $comp = explode( '/', ius_from_assoc( $payload, 'ref' ) );
 
         if ( count( $comp ) >= 3 && $comp[0] == 'refs' && $comp[1] == 'tags' ) {

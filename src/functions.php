@@ -406,67 +406,13 @@ function ius_save_released( $project_id, $version, $url ) {
         mkdir( $release_dir, 0777, TRUE );
     }
 
-    $release = get_posts(
-        array(
-            'post_type'   => 'ius_release',
-            'post_status' => array( 'publish', 'draft' ),
-            'post_parent' => $project_id,
-            'meta_key'    => 'ius_release_version',
-            'meta_value'  => $version,
-        )
-    );
-
-    if ( ! $release ) {
-        $release_id = wp_insert_post(
-            array(
-                'post_title'  => sprintf( __( '%s v%s', 'ius' ),
-                    get_post_field( 'post_title', $project_id ),
-                    $version ),
-                'post_type'   => 'ius_release',
-                'post_status' => 'publish',
-                'post_parent' => $project_id,
-                'meta_input'  => array( 'ius_release_version' => $version ),
-            )
-        );
-    } else {
-        $release_id = $release[0]->ID;
-        // but remove all attachments
-        $attachments = get_attached_media( 'application/zip', $release_id );
-        foreach ( $attachments as $attachment ) {
-            wp_delete_attachment( $attachment->ID );
-        }
-
-        wp_update_post(
-            array(
-                'ID'          => $release_id,
-                'post_status' => 'publish',
-            )
-        );
-    }
-
     if ( ! copy( $temp_file, $file_name ) ) {
         return new WP_Error( 'move_fail', "Failed to copy file from '$temp_file' to '$file_name'." );
     }
 
     @unlink( $temp_file );
 
-    $attach_id = wp_insert_attachment(
-        array(
-            'guid'           => "{$upload_dir['baseurl']}/ius/{$slug}/" . basename( $file_name ),
-            'post_mime_type' => 'application/zip',
-            'post_title'     => basename( $file_name ),
-            'post_status'    => 'inherit',
-        ),
-        $file_name,
-        $release_id
-    );
+    return $file_name;
 
-    if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-        /** @noinspection PhpIncludeInspection */
-        require_once( get_home_path() . '/wp-admin/includes/image.php' );
-    }
 
-    wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $file_name ) );
-
-    return $release_id;
 }
