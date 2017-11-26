@@ -1,6 +1,7 @@
 1.1.0-alpha.3
 =============
 * rewrite.php webhook 펑션콜 잘못된 문제 수정.
+* webhook 핸들링 기능 향상.
 
 1.1.0-alpha.2
 =============
