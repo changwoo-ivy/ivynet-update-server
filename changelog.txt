@@ -1,3 +1,7 @@
+1.1.0-alpha.3
+=============
+* rewrite.php webhook 펑션콜 잘못된 문제 수정.
+
 1.1.0-alpha.2
 =============
 * Github Webhook 연동 기능 추가.

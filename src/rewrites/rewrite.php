@@ -42,7 +42,7 @@ function ius_template_redirect() {
             exit;
 
         case 'webhook':
-            handle_webhook( ius_from_assoc( $wp->query_vars, 'ius-sender', '' ) );
+            ius_handle_webhook( ius_from_assoc( $wp->query_vars, 'ius-sender', '' ) );
             exit;
     }
 }
