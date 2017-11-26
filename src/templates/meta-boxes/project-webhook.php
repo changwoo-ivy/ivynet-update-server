@@ -1,20 +1,28 @@
 <table class="form-table">
   <tr>
     <th>
-      <label for="ius_plugin_main">
+      <label for="ius_github_repository">
           <?php esc_html_e( 'Github Repository', 'ius' ); ?>
       </label>
     </th>
     <td>
+        <?php $repository = get_post_meta( get_the_ID(), 'ius_github_repository', TRUE ); ?>
       <input type="text"
              class="text"
              id="ius_github_repository"
              name="ius_github_repository"
-             value="<?php echo esc_attr( get_post_meta( get_the_ID(), 'ius_github_repository', TRUE ) ); ?>"/>
+             value="<?php echo esc_attr( $repository ); ?>"/>
+        <?php if ( $repository ) : ?>
+          <br/>
+          <a href="https://github.com/<?php echo esc_attr( $repository ); ?>/" target="_blank"><?php esc_html_e( 'Visit Repository',
+                  'ius' ); ?></a>
+            <?php esc_html_e( '(You may need authorization if the repository is private.)', 'ius' ); ?>
+        <?php endif; ?>
       <br/>
       <span class="description">
         <?php esc_html_e( 'Your github repository. Input like <your-name>/<repository>', 'ius' ); ?>
       </span>
+
     </td>
   </tr>
   <tr>
