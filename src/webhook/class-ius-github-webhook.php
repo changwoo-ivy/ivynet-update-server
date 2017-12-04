@@ -18,6 +18,11 @@ class IUS_Github_Webhook {
 
     private $payload;
 
+    /**
+     * IUS_Github_Webhook constructor.
+     *
+     * @throws Exception
+     */
     public function __construct() {
         if ( ! extension_loaded( 'hash' ) ) {
             throw new Exception( 'Missing \'hash\' extension to check to secret code validity.' );
@@ -61,6 +66,10 @@ class IUS_Github_Webhook {
         $this->payload = NULL;
     }
 
+    /**
+     * @return false|int|null|WP_Error|WP_Post
+     * @throws Exception
+     */
     public function handle_webhook() {
 
         $this->initialize();
@@ -104,6 +113,9 @@ class IUS_Github_Webhook {
         }
     }
 
+    /**
+     * @return int|null|WP_Error
+     */
     private function handle_tag_create() {
 
         error_log( 'handle_tag_create() invoked' );
@@ -229,6 +241,9 @@ class IUS_Github_Webhook {
         return $d;
     }
 
+    /**
+     * @return int|WP_Error
+     */
     private function handle_release() {
 
         error_log( 'handle_release() invoked' );
