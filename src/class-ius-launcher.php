@@ -11,6 +11,7 @@ class IUS_Launcher {
         if ( is_admin() ) {
             require_once IUS_DIR . '/src/admin/projects.php';
             require_once IUS_DIR . '/src/admin/release.php';
+            require_once IUS_DIR . '/src/admin/profile.php';
         }
 
         register_activation_hook( IUS_MAIN, array( $this, 'activation' ) );
