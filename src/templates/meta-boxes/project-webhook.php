@@ -43,5 +43,31 @@
       </span>
     </td>
   </tr>
+  <tr>
+    <th>
+      <label for="ius_token_user_id">
+        Github Personal Access Token
+      </label>
+    </th>
+    <td>
+        <?php
+        wp_dropdown_users(
+            array(
+                'id'               => 'ius_github_token_user_id',
+                'name'             => 'ius_github_token_user_id',
+                'selected'         => get_post_meta( get_the_ID(), 'ius_github_token_user_id', TRUE ),
+                'show_option_none' => 'Choose a user',
+                'role'             => 'administrator',
+                'meta_key'         => 'ius_github_personal_access_token',
+                'meta_compare'     => 'EXISTS',
+            )
+        );
+        ?>
+      <br/>
+      <span class="description">
+        Settings &gt; Developer settings &gt; <a href="https://github.com/settings/tokens" target="_blank">Personal access tokens</a>
+      </span>
+    </td>
+  </tr>
 </table>
 <?php wp_nonce_field( 'project-webhook-nonce-8723', 'project-webhook-nonce' ); ?>

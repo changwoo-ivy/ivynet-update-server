@@ -64,6 +64,7 @@ function ius_add_meta_boxes_project() {
      * ius_latest_version
      * ius_github_repository
      * ius_github_webhook_secret
+     * ius_github_token_user_id
      */
 
     add_meta_box( 'project-status',
@@ -173,5 +174,8 @@ function ius_save_post_ius_project( $post_id, $post, $updated ) {
 
         $webhook_secret = trim( sanitize_text_field( ius_from_post( 'ius_github_webhook_secret' ) ) );
         update_post_meta( $post_id, 'ius_github_webhook_secret', $webhook_secret );
+
+        $github_token_user_id = absint( ius_from_post( 'ius_github_token_user_id' ) );
+        update_post_meta( $post_id, 'ius_github_token_user_id', $github_token_user_id );
     }
 }
