@@ -331,8 +331,12 @@ function ius_handle_webhook( $hook_identifier ) {
         case 'github':
             require_once( __DIR__ . '/webhook/class-ius-github-webhook.php' );
 
-            $github = new IUS_Github_Webhook();
-            $result = $github->handle_webhook();
+            try {
+                $github = new IUS_Github_Webhook();
+                $result = $github->handle_webhook();
+            } catch ( Exception $e ) {
+                $result = new WP_Error( $e->getCode(), $e->getMessage() );
+            }
 
             if ( is_wp_error( $result ) ) {
                 error_log( 'Error occurred: ' . $result->get_error_message() );
