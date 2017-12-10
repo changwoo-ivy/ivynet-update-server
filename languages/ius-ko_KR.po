@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Ivynet Update Server\n"
-"POT-Creation-Date: 2017-11-19 21:30+0900\n"
-"PO-Revision-Date: 2017-11-19 21:30+0900\n"
+"POT-Creation-Date: 2017-12-10 23:25+0900\n"
+"PO-Revision-Date: 2017-12-10 23:27+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ko_KR\n"
@@ -64,18 +64,22 @@ msgctxt "Custom post label"
 msgid "Edit Project"
 msgstr "프로젝트 편집"
 
-#: src/custom-posts/project.php:68
+#: src/custom-posts/project.php:71
 #: src/templates/meta-boxes/project-status.php:11
 msgid "Project Status"
 msgstr "프로젝트 상황"
 
-#: src/custom-posts/project.php:74
+#: src/custom-posts/project.php:77
 msgid "Project Properties"
 msgstr "프로젝트 속성"
 
-#: src/custom-posts/project.php:76
+#: src/custom-posts/project.php:79
 msgid "Project Releases"
 msgstr "프로젝트 릴리즈들"
+
+#: src/custom-posts/project.php:81
+msgid "Webhook"
+msgstr "웹훅"
 
 #: src/custom-posts/release.php:14
 msgctxt "Custom post label"
@@ -128,6 +132,47 @@ msgstr "아직 릴리즈 없음."
 msgid "You can override the project latest version here."
 msgstr "여기서 최신 버전을 지정할 수 있습니다."
 
+#: src/templates/meta-boxes/project-releases.php:18
+msgid "Draft"
+msgstr "초안"
+
+#: src/templates/meta-boxes/project-webhook.php:5
+msgid "Github Repository"
+msgstr "깃헙 저장소"
+
+#: src/templates/meta-boxes/project-webhook.php:17
+msgid "Visit Repository"
+msgstr "저장소 방문"
+
+#: src/templates/meta-boxes/project-webhook.php:19
+msgid "(You may need authorization if the repository is private.)"
+msgstr "(개인 저장소인 경우 인증이 필요할 수도 있습니다.)"
+
+#: src/templates/meta-boxes/project-webhook.php:23
+msgid "Your github repository. Input like &lt;your-name&gt;/&lt;repository&gt;"
+msgstr "깃헙 저장소. &lt;이름&gt;/&lt;저장소&gt;처럼 입력."
+
+#: src/templates/meta-boxes/project-webhook.php:30
+msgid "Webhook Secret"
+msgstr "웹훅 비밀 키"
+
+#: src/templates/meta-boxes/project-webhook.php:41
+msgid "Secret for the webhook. Blank for no password."
+msgstr "웹훅을 위한 비밀 키. 없으면 공란."
+
+#: src/templates/meta-boxes/project-webhook.php:48
+#: src/templates/profile/user-profile.php:32
+msgid "Github Personal Access Token"
+msgstr "깃헙 개인 액세스 토큰"
+
+#: src/templates/meta-boxes/project-webhook.php:67
+msgid ""
+"Settings &gt; Developer settings &gt; <a href=\"https://github.com/settings/"
+"tokens\" target=\"_blank\">Personal access tokens</a>"
+msgstr ""
+"Settings &gt; Developer settings &gt; <a href=\"https://github.com/settings/"
+"tokens\" target=\"_blank\">Personal access tokens</a>"
+
 #: src/templates/meta-boxes/release-properties.php:17
 msgid "Choose a project"
 msgstr "프로젝트 선택"
@@ -159,9 +204,38 @@ msgstr ""
 "플러그인 파일을 첨부하세요. 워드프레스 코어 업데이트를 위해 반드시 .zip 파일"
 "만 가능합니다."
 
+#: src/templates/profile/user-profile.php:6
+msgid "IUS Profile"
+msgstr "IUS 프로파일"
+
+#: src/templates/profile/user-profile.php:12
+msgid "Github User"
+msgstr "갓헙 사용자"
+
+#: src/templates/profile/user-profile.php:25
+msgid "Your Github user name."
+msgstr "깃헙 사용자 이름."
+
+#: src/templates/profile/user-profile.php:45
+msgid ""
+"Settings &gt; Developer settings &gt; <a href=\"https://github.com/settings/"
+"tokens\" target=\"_blank\">Personal access tokens</a>."
+msgstr ""
+"Settings &gt; Developer settings &gt; <a href=\"https://github.com/settings/"
+"tokens\" target=\"_blank\">Personal access tokens</a>."
+
 #: src/templates/quick-edit/project-status.php:5
 msgid "Proj. Stat."
 msgstr "프로젝트 상황"
+
+#: src/webhook/class-ius-github-webhook.php:164
+#, php-format
+msgid "%s v%s"
+msgstr "%s v%s"
+
+#~ msgid ""
+#~ "Your github repository. Input like &lt;your-name&gt;/&lt;repository$gt;"
+#~ msgstr "깃헙 저장소. &lt;이름&gt;/&lt;저장소$gt;"
 
 #~ msgctxt "ius"
 #~ msgid "Edit Project"

@@ -2,7 +2,7 @@
   <tr>
     <th>
       <label for="ius_github_repository">
-          <?php esc_html_e( 'Github Repository', 'ius' ); ?>
+          <?php _e( 'Github Repository', 'ius' ); ?>
       </label>
     </th>
     <td>
@@ -20,9 +20,8 @@
         <?php endif; ?>
       <br/>
       <span class="description">
-        <?php esc_html_e( 'Your github repository. Input like <your-name>/<repository>', 'ius' ); ?>
+        <?php esc_html_e( 'Your github repository. Input like &lt;your-name&gt;/&lt;repository&gt;', 'ius' ); ?>
       </span>
-
     </td>
   </tr>
   <tr>
@@ -46,7 +45,7 @@
   <tr>
     <th>
       <label for="ius_token_user_id">
-        Github Personal Access Token
+          <?php _e( 'Github Personal Access Token', 'ius' ); ?>
       </label>
     </th>
     <td>
@@ -65,7 +64,8 @@
         ?>
       <br/>
       <span class="description">
-        Settings &gt; Developer settings &gt; <a href="https://github.com/settings/tokens" target="_blank">Personal access tokens</a>
+        <?php _e( 'Settings &gt; Developer settings &gt; <a href="https://github.com/settings/tokens" target="_blank">Personal access tokens</a>',
+            'ius' ); ?>
       </span>
     </td>
   </tr>

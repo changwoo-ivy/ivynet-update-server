@@ -75,8 +75,8 @@ class IUS_Github_Webhook {
         $this->initialize();
         $this->payload = $this->get_payload();
 
-        error_log( print_r( $_SERVER, TRUE ) );
-        error_log( print_r( $this->payload, TRUE ) );
+//        error_log( print_r( $_SERVER, TRUE ) );
+//        error_log( print_r( $this->payload, TRUE ) );
 
         // check secret
         $project = ius_get_project_by_repo_name( $this->get_repo_full_name( $this->payload ) );
@@ -102,10 +102,6 @@ class IUS_Github_Webhook {
 
             case 'delete':
                 return $this->handle_tag_delete();
-                break;
-
-            case 'release':
-                return $this->handle_release();
                 break;
 
             default:
@@ -155,16 +151,19 @@ class IUS_Github_Webhook {
         );
 
         if ( $release ) {
-            error_log( "Tag '{$tag}' of repository '{$repo_full_name}' is already created. Just return its ID." );
-
-            return $release[0]->ID;
+            error_log( "Tag '{$tag}' of repository '{$repo_full_name}' is already created. Replace the post." );
+            $attachments = get_attached_media( 'application/zip', $release[0]->ID );
+            foreach ( $attachments as $attachment ) {
+                wp_delete_attachment( $attachment->ID, TRUE );
+            }
+            wp_delete_post( $release[0]->ID, TRUE );
         }
 
         $new_release_id = wp_insert_post(
             array(
                 'post_title'  => sprintf( __( '%s v%s', 'ius' ), $project->post_title, $tag ),
                 'post_type'   => 'ius_release',
-                'post_status' => 'draft',
+                'post_status' => 'publish',
                 'post_parent' => $project->ID,
                 'meta_input'  => array( 'ius_release_version' => $tag ),
             )
@@ -173,6 +172,49 @@ class IUS_Github_Webhook {
         if ( is_wp_error( $new_release_id ) ) {
             return $new_release_id;
         }
+
+        $is_private = (bool) $this->payload['repository']['private'];
+
+        if ( $is_private ) {
+            $user          = $this->get_user( $project->ID );
+            $private_token = $this->get_private_token( $project->ID );
+        } else {
+            $user          = NULL;
+            $private_token = NULL;
+        }
+
+        if ( $is_private && ! ( $private_token && $user ) ) {
+            error_log( 'Github access information not provided for private repository. Skip downloading the zip archive.' );
+        } else {
+            $file_name = ius_save_released(
+                $project->ID,
+                $tag,
+                "https://github.com/{$repo_full_name}/archive/{$tag}.zip",
+                $user,
+                $private_token
+            );
+
+            if ( $file_name ) {
+                $attach_id = wp_insert_attachment(
+                    array(
+                        'post_mime_type' => 'application/zip',
+                        'post_title'     => basename( $file_name ),
+                        'post_status'    => 'inherit',
+                    ),
+                    $file_name,
+                    $new_release_id
+                );
+
+                if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+                    /** @noinspection PhpIncludeInspection */
+                    require_once( get_home_path() . '/wp-admin/includes/image.php' );
+                }
+
+                wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $file_name ) );
+            }
+        }
+
+        ius_refresh_latest_release( $project->ID );
 
         error_log( 'handle_tag_create() finished' );
 
@@ -236,110 +278,11 @@ class IUS_Github_Webhook {
             $d = wp_delete_post( $r, TRUE );
         }
 
+        ius_refresh_latest_release( $project->ID );
+
         error_log( 'handle_tag_delete() finished' );
 
         return $d;
-    }
-
-    /**
-     * @return int|WP_Error
-     */
-    private function handle_release() {
-
-        error_log( 'handle_release() invoked' );
-
-        $release        = &ius_from_assoc_ref( $this->payload, 'release', array() );
-        $repository     = &ius_from_assoc_ref( $this->payload, 'repository', array() );
-        $tag            = ius_from_assoc( $release, 'tag_name', '' );
-        $zipall_url     = ius_from_assoc( $release, 'zipball_url' );
-        $action         = ius_from_assoc( $this->payload, 'action' );
-        $repo_full_name = $this->get_repo_full_name( $this->payload );
-
-        if ( ! $repo_full_name || $action != 'published' || ! $tag || ! $zipall_url ) {
-            return new WP_Error(
-                'handle_event',
-                "Handle event \'release\' could not proceed because it is not a valid request. Repository: \'{$repo_full_name}\', Tag: \'{$tag}\', Action: \'{$action}\', Download URL: {$zipall_url}"
-            );
-        }
-
-        $project = ius_get_project_by_repo_name( $repo_full_name );
-
-        if ( ! $project ) {
-            return new WP_Error(
-                'handle_event',
-                "Repository '{$repo_full_name}' is not a proper project. Did you forget to create a post of it?"
-            );
-        }
-
-        $private = intval( ius_from_assoc( $repository, 'private' ) );
-
-        if ( ! $private ) {
-            $file_name = ius_save_released( $project->ID, $tag, $zipall_url );
-        } else {
-            error_log( 'Downloading is skipped because the repository is private.' );
-            $file_name = '';
-        }
-
-        $release = get_posts(
-            array(
-                'post_type'   => 'ius_release',
-                'post_status' => array( 'publish', 'draft' ),
-                'post_parent' => $project->ID,
-                'meta_key'    => 'ius_release_version',
-                'meta_value'  => $tag,
-            )
-        );
-
-        if ( ! $release ) {
-            $release_id = wp_insert_post(
-                array(
-                    'post_title'  => sprintf( __( '%s v%s', 'ius' ), $project->post_title, $tag ),
-                    'post_type'   => 'ius_release',
-                    'post_status' => 'publish',
-                    'post_parent' => $project->ID,
-                    'meta_input'  => array( 'ius_release_version' => $tag ),
-                )
-            );
-        } else {
-            // reuse already released one.
-            $release_id = $release[0]->ID;
-
-            // but remove all attachments
-            $attachments = get_attached_media( 'application/zip', $release_id );
-            foreach ( $attachments as $attachment ) {
-                wp_delete_attachment( $attachment->ID );
-            }
-
-            wp_update_post(
-                array(
-                    'ID'          => $release_id,
-                    'post_status' => 'publish',
-                )
-            );
-        }
-
-        if ( $file_name ) {
-            $attach_id = wp_insert_attachment(
-                array(
-                    'post_mime_type' => 'application/zip',
-                    'post_title'     => basename( $file_name ),
-                    'post_status'    => 'inherit',
-                ),
-                $file_name,
-                $release_id
-            );
-
-            if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-                /** @noinspection PhpIncludeInspection */
-                require_once( get_home_path() . '/wp-admin/includes/image.php' );
-            }
-
-            wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $file_name ) );
-        }
-
-        error_log( 'handle_release() finished' );
-
-        return $release_id;
     }
 
     private function get_repo_full_name( &$payload ) {
@@ -356,5 +299,31 @@ class IUS_Github_Webhook {
         }
 
         return $comp[0];
+    }
+
+    private function get_user( $project_id ) {
+
+        $token_owner_id = get_post_meta( $project_id, 'ius_github_token_user_id', TRUE );
+
+        if ( ! $token_owner_id ) {
+            return NULL;
+        }
+
+        $user = get_user_meta( $token_owner_id, 'ius_github_user', TRUE );
+
+        return $user ? $user : NULL;
+    }
+
+    private function get_private_token( $project_id ) {
+
+        $token_owner_id = get_post_meta( $project_id, 'ius_github_token_user_id', TRUE );
+
+        if ( ! $token_owner_id ) {
+            return NULL;
+        }
+
+        $token = get_user_meta( $token_owner_id, 'ius_github_personal_access_token', TRUE );
+
+        return $token ? $token : NULL;
     }
 }

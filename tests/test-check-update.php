@@ -18,6 +18,8 @@ class Test_Check_Update extends WP_UnitTestCase {
 
     public function test_ius_check_update_10() {
 
+        // TODO: 테스트 코드 잘못됨. 테스트 코드 릴리즈에 모두 attachment 붙여 줘야 함.
+
         // prepare ius-fake-4-test/ius-fake-4-test.php plugin.
         $project = $this->factory()->post->create_and_get( array(
             'post_title'  => 'Fake 4 Test',

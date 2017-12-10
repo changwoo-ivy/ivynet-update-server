@@ -3,13 +3,33 @@
  * @var WP_User $profileuser
  */
 ?>
-  <h2>IUS Profile</h2>
+  <h2><?php _e( 'IUS Profile', 'ius' ); ?></h2>
   <table class="form-table">
     <tbody>
     <tr>
       <th>
+        <label for="ius_github_user">
+            <?php _e( 'Github User', 'ius' ); ?>
+        </label>
+      </th>
+      <td>
+        <input type="text"
+               class="text"
+               id="ius_github_user"
+               name="ius_github_user"
+               value="<?php echo esc_attr(
+                   get_user_meta( $profileuser->ID, 'ius_github_user', TRUE ) );
+               ?>"/>
+        <br/>
+        <span class="description">
+        <?php _e( 'Your Github user name.', 'ius' ); ?>
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th>
         <label for="ius_github_personal_access_token">
-          Github Personal Access Token
+            <?php _e( 'Github Personal Access Token', 'ius' ); ?>
         </label>
       </th>
       <td>
@@ -22,7 +42,8 @@
                ?>"/>
         <br/>
         <span class="description">
-        Settings &gt; Developer settings &gt; <a href="https://github.com/settings/tokens" target="_blank">Personal access tokens</a>
+          <?php _e( 'Settings &gt; Developer settings &gt; <a href="https://github.com/settings/tokens" target="_blank">Personal access tokens</a>.',
+              'ius' ); ?>
       </span>
       </td>
     </tr>

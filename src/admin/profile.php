@@ -1,6 +1,7 @@
 <?php
 /**
  *  custom user meta keys:
+ *      ius_github_user
  *      ius_github_personal_access_token
  */
 
@@ -19,6 +20,12 @@ add_action( 'edit_user_profile_update', 'ius_update_profile' );
 
 function ius_update_profile( $user_id ) {
     if ( wp_verify_nonce( ius_from_post( 'ius-nonce' ), 'ius_profile_98^25bse$#' ) ) {
+        update_user_meta(
+            $user_id,
+            'ius_github_user',
+            sanitize_text_field( ius_from_post( 'ius_github_user' ) )
+        );
+
         update_user_meta(
             $user_id,
             'ius_github_personal_access_token',

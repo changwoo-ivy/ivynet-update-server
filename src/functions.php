@@ -314,6 +314,7 @@ function ius_get_plugin_identifier( $plugin_main ) {
     } elseif ( count( $exploded ) == 1 ) {
         $dot_pos   = strrpos( $exploded[0], '.' );
         $file_name = substr( $exploded[0], 0, $dot_pos === FALSE ? NULL : $dot_pos );
+
         return sanitize_key( $file_name );
     }
 
@@ -380,7 +381,7 @@ function ius_get_project_by_repo_name( $repo_name ) {
 }
 
 
-function ius_save_released( $project_id, $version, $url ) {
+function ius_save_released( $project_id, $version, $url, $user = '', $pass = '' ) {
 
     $slug = ius_get_plugin_identifier( get_post_meta( $project_id, 'ius_plugin_main', TRUE ) );
 
@@ -395,8 +396,24 @@ function ius_save_released( $project_id, $version, $url ) {
 
     error_log( "Download a file from: {$url}" );
 
+    $func = function ( $r, $target ) use ( $url, $user, $pass ) {
+        if ( $target === $url && strpos( $url, 'https://github.com/' ) === 0 ) {
+            $r['headers']['Authorization'] = 'Basic ' . base64_encode( "{$user}:{$pass}" );
+        }
+
+        return $r;
+    };
+
+    if ( $user && $pass ) {
+        add_filter( 'http_request_args', $func, 10, 2 );
+    }
+
     /** @var string|WP_Error $temp_file */
     $temp_file = download_url( $url );
+
+    if ( $user && $pass ) {
+        remove_filter( 'http_request_args', $func );
+    }
 
     if ( is_wp_error( $temp_file ) ) {
         return $temp_file;
@@ -417,6 +434,16 @@ function ius_save_released( $project_id, $version, $url ) {
     @unlink( $temp_file );
 
     return $file_name;
+}
 
 
+function ius_refresh_latest_release( $project_id ) {
+
+    $releases = ius_get_project_releases( $project_id );
+
+    if ( $releases ) {
+        update_post_meta( $project_id, 'ius_latest_version', $releases[0]['version'] );
+    } else {
+        delete_post_meta( $project_id, 'ius_latest_version' );
+    }
 }
