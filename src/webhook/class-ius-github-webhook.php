@@ -195,6 +195,19 @@ class IUS_Github_Webhook {
             );
 
             if ( $file_name ) {
+
+                $plugin_main = get_post_meta( $project->ID, 'ius_plugin_main', TRUE );
+
+                if ( ! $plugin_main ) {
+                    return new WP_Error( 'handle_event', 'invalid meta value: ius_plugin_main' );
+                }
+
+                if ( ( $plugin_exploded = explode( '/', $plugin_main ) ) && ! ius_rename_zip_root_dir( $file_name,
+                        $plugin_exploded[0],
+                        $tag ) ) {
+                    return new WP_Error( 'handle_event', 'zip folder renaming failed' );
+                }
+
                 $attach_id = wp_insert_attachment(
                     array(
                         'post_mime_type' => 'application/zip',

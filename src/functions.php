@@ -447,3 +447,63 @@ function ius_refresh_latest_release( $project_id ) {
         delete_post_meta( $project_id, 'ius_latest_version' );
     }
 }
+
+
+/**
+ * 플러그인 zip 파일 내부의 플러그인 디렉토리의 이름 중 버전 부분을 정리.
+ *
+ * Github 리포지터리에서 바로 받은 zip 파일을 풀어보면 이런 식으로 되어 있다.
+ *
+ * plugin-1.0.0.zip ---
+ *  plugin-1.0.0/
+ *  plugin-1.0.0/plugin.php
+ *  plugin-1.0.0/LICENSE
+ *  ...
+ *
+ * 그러면 이 zip 파일을 풀면 'plugin-1.0.0'이라는 서브 디렉토리가 생성되고, 모든 플러그인 소스 파일은 그 아래에 위치힌다.
+ *
+ * 그런데 워드프레스 업데이트시 이렇게 파일을 풀면 안 된다. 버전이 업데이트된다고 디렉토리 이름이 변해서는 안 되기 때문.
+ * 그렇기 때문에 디렉토리의 규칙성인 {plugin_name}-{version}을 찾아 수정해야 한다.
+ *
+ * @param string $zip_file    플러그인 입력 파일 이름.
+ * @param string $plugin_name 슬래시 없는 플러그인 이름. 예를 들어 최상위 디렉토리가 'plugin-1.0.0/'이라면 'plugin'이다.
+ * @param string $version     찾을 버전.
+ *
+ * @return bool
+ */
+function ius_rename_zip_root_dir( $zip_file, $plugin_name, $version ) {
+
+    $zip = new ZipArchive();
+    $res = $zip->open( $zip_file );
+
+    if ( ! $res ) {
+        return FALSE;
+    }
+
+    $old_dir = $plugin_name . '-' . $version . '/';
+
+    for ( $i = 0; $i < $zip->numFiles; ++ $i ) {
+
+        $old_name = $zip->getNameIndex( $i );
+        if ( strpos( $old_name, $old_dir ) !== 0 ) {
+            continue;
+        }
+
+        $exploded = explode( '/', $old_name );
+        if ( ! $exploded ) {
+            continue;
+        }
+
+        $exploded[0] = $plugin_name;
+
+        if ( ! $zip->renameIndex( $i, implode( '/', $exploded ) ) ) {
+            error_log( "ZipArchive::renameIndex() failed at $i, $old_name" );
+
+            return FALSE;
+        };
+    }
+
+    $zip->close();
+
+    return TRUE;
+}
